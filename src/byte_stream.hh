@@ -11,7 +11,17 @@ class Writer;
 class ByteStream
 {
 protected:
+  enum StreamState
+  {
+    CLOSE,
+    ERROR
+  };
+  std::queue<std::string> buffer_ {};
   uint64_t capacity_;
+  uint64_t bytes_push_size_ {};
+  uint64_t bytes_pop_size_ {};
+  unsigned char stream_state_ {};
+  std::string_view buffer_view_ {};
   // Please add any additional state to the ByteStream here, and not to the Writer and Reader interfaces.
 
 public:
@@ -27,27 +37,27 @@ public:
 class Writer : public ByteStream
 {
 public:
-  void push( std::string data ); // Push data to stream, but only as much as available capacity allows.
+  void push( std::string data ) noexcept; // Push data to stream, but only as much as available capacity allows.
 
-  void close();     // Signal that the stream has reached its ending. Nothing more will be written.
-  void set_error(); // Signal that the stream suffered an error.
+  void close() noexcept;     // Signal that the stream has reached its ending. Nothing more will be written.
+  void set_error() noexcept; // Signal that the stream suffered an error.
 
-  bool is_closed() const;              // Has the stream been closed?
-  uint64_t available_capacity() const; // How many bytes can be pushed to the stream right now?
-  uint64_t bytes_pushed() const;       // Total number of bytes cumulatively pushed to the stream
+  bool is_closed() const noexcept;              // Has the stream been closed?
+  uint64_t available_capacity() const noexcept; // How many bytes can be pushed to the stream right now?
+  uint64_t bytes_pushed() const noexcept;       // Total number of bytes cumulatively pushed to the stream
 };
 
 class Reader : public ByteStream
 {
 public:
-  std::string_view peek() const; // Peek at the next bytes in the buffer
-  void pop( uint64_t len );      // Remove `len` bytes from the buffer
+  std::string_view peek() const noexcept; // Peek at the next bytes in the buffer
+  void pop( uint64_t len ) noexcept;      // Remove `len` bytes from the buffer
 
-  bool is_finished() const; // Is the stream finished (closed and fully popped)?
-  bool has_error() const;   // Has the stream had an error?
+  bool is_finished() const noexcept; // Is the stream finished (closed and fully popped)?
+  bool has_error() const noexcept;   // Has the stream had an error?
 
-  uint64_t bytes_buffered() const; // Number of bytes currently buffered (pushed and not popped)
-  uint64_t bytes_popped() const;   // Total number of bytes cumulatively popped from stream
+  uint64_t bytes_buffered() const noexcept; // Number of bytes currently buffered (pushed and not popped)
+  uint64_t bytes_popped() const noexcept;   // Total number of bytes cumulatively popped from stream
 };
 
 /*

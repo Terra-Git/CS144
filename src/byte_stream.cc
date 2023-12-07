@@ -1,3 +1,4 @@
+#include <iostream>
 #include <stdexcept>
 
 #include "byte_stream.hh"
@@ -6,72 +7,95 @@ using namespace std;
 
 ByteStream::ByteStream( uint64_t capacity ) : capacity_( capacity ) {}
 
-void Writer::push( string data )
+// 这里是值传递，data可以move操作
+void Writer::push( string data ) noexcept
 {
-  // Your code here.
-  (void)data;
+  if ( is_closed() ) {
+    return;
+  }
+  auto size = min( available_capacity(), data.size() );
+
+  if ( 0 == size ) {
+    return;
+  } else if ( size < data.size() ) {
+    data.resize( size );
+  }
+
+  buffer_.push( std::move( data ) );
+  if ( 1 == buffer_.size() ) {
+    buffer_view_ = buffer_.front();
+  }
+  bytes_push_size_ += size;
+  return;
 }
 
-void Writer::close()
+void Writer::close() noexcept
 {
-  // Your code here.
+  stream_state_ |= ( 1 << StreamState::CLOSE );
 }
 
-void Writer::set_error()
+void Writer::set_error() noexcept
 {
-  // Your code here.
+  stream_state_ |= ( 1 << StreamState::ERROR );
 }
 
-bool Writer::is_closed() const
+bool Writer::is_closed() const noexcept
 {
-  // Your code here.
-  return {};
+  return stream_state_ & ( 1 << StreamState::CLOSE );
 }
 
-uint64_t Writer::available_capacity() const
+uint64_t Writer::available_capacity() const noexcept
 {
-  // Your code here.
-  return {};
+  return ( capacity_ - reader().bytes_buffered() );
 }
 
-uint64_t Writer::bytes_pushed() const
+uint64_t Writer::bytes_pushed() const noexcept
 {
-  // Your code here.
-  return {};
+  return bytes_push_size_;
 }
 
-string_view Reader::peek() const
+string_view Reader::peek() const noexcept
 {
-  // Your code here.
-  return {};
+  return buffer_view_;
 }
 
-bool Reader::is_finished() const
+bool Reader::is_finished() const noexcept
 {
-  // Your code here.
-  return {};
+  return ( writer().is_closed() && 0 == bytes_buffered() );
 }
 
-bool Reader::has_error() const
+bool Reader::has_error() const noexcept
 {
-  // Your code here.
-  return {};
+  return stream_state_ & ( 1 << StreamState::ERROR );
 }
 
-void Reader::pop( uint64_t len )
+void Reader::pop( uint64_t len ) noexcept
 {
-  // Your code here.
-  (void)len;
+  if ( len > bytes_buffered() ) {
+    return;
+  }
+
+  bytes_pop_size_ += len;
+
+  while ( 0 < len ) {
+    if ( buffer_view_.size() <= len ) {
+      len -= buffer_view_.size();
+      buffer_.pop();
+      buffer_view_ = buffer_.front();
+    } else {
+      buffer_view_.remove_prefix( len );
+      len = 0;
+    }
+  }
+  return;
 }
 
-uint64_t Reader::bytes_buffered() const
+uint64_t Reader::bytes_buffered() const noexcept
 {
-  // Your code here.
-  return {};
+  return writer().bytes_pushed() - bytes_popped();
 }
 
-uint64_t Reader::bytes_popped() const
+uint64_t Reader::bytes_popped() const noexcept
 {
-  // Your code here.
-  return {};
+  return bytes_pop_size_;
 }
