@@ -17,7 +17,7 @@ void Reassembler::insert( uint64_t first_index, string data, bool is_last_substr
   // 允许写入的最高数据尾号
   uint64_t available_end_index = next_byte_index_ + output.available_capacity() - 1;
   // 已经被写入的数据 或者 无容量写入新数据的情况, 这里提供保证，store中的数据都是可以立马被推入stream中的
-  if( data_last_index < next_byte_index_ ||  available_end_index <= first_index ){
+  if( data_last_index < next_byte_index_ ||  available_end_index < first_index ){
     return ;
   }
     // 判断能写入多少，头尾都要判断
@@ -33,7 +33,7 @@ void Reassembler::insert( uint64_t first_index, string data, bool is_last_substr
   }
   // 如果收到的头刚好是要推入的下一个数据，则判断，store中是否有数据，没有就直接推； 
   // 有数据，则判断，data_last 是不是超过或等于 store 的头索引，把 data 截取到 store 头索引
-  if( first_index == next_byte_index_ && ( store_data_.empty() || data_last_index <= get<1>(store_data_.front()) )) {
+  if( first_index == next_byte_index_ && ( store_data_.empty() || data_last_index < get<1>(store_data_.front()) )) {
     if( !store_data_.empty() ){
       data.resize( get<0>(store_data_.front()) - first_index);
     }
