@@ -11,8 +11,7 @@ void Reassembler::insert( uint64_t first_index, string data, bool is_last_substr
   (void)output;
 }
 
-uint64_t Reassembler::bytes_pending() const
+uint64_t Reassembler::bytes_pending() const noexcept
 {
-  // Your code here.
-  return {};
+  return store_data_size_;
 }

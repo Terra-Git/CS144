@@ -3,9 +3,24 @@
 #include "byte_stream.hh"
 
 #include <string>
+#include <list>
+#include <tuple>
 
 class Reassembler
 {
+protected:
+  using Node = tuple<uint64_t,uint64_t,std::string>;
+  bool                store_finish_;               // 是否已经缓存完成
+  std::list<Node>     store_data_;                 // 已经缓存的数据
+  uint64_t            next_byte_stream_index_;           // 下一个要写入流的标号
+  uint64_t            store_data_size_;            // 已经缓存的数据大小
+private:
+  // 把数据推入暂存区
+  void    push_data_to_store(uint64_t first_index, uint64_t last_index, std::string data);
+  // 把数据推入字节流
+  void    push_data_to_byte_stream(std::string data, Writer& output);
+  // 把暂存区推入字节流
+  void    push_store_to_byte_stream(Writer& output);
 public:
   /*
    * Insert a new substring to be reassembled into a ByteStream.
@@ -30,5 +45,5 @@ public:
   void insert( uint64_t first_index, std::string data, bool is_last_substring, Writer& output );
 
   // How many bytes are stored in the Reassembler itself?
-  uint64_t bytes_pending() const;
+  uint64_t bytes_pending() const noexcept;
 };
