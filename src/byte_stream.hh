@@ -10,6 +10,15 @@ class Writer;
 
 class ByteStream
 {
+public:
+  explicit ByteStream( uint64_t capacity );
+
+  // Helper functions (provided) to access the ByteStream's Reader and Writer interfaces
+  Reader& reader();
+  const Reader& reader() const;
+  Writer& writer();
+  const Writer& writer() const;
+  
 protected:
   enum StreamState
   {
@@ -23,15 +32,6 @@ protected:
   unsigned char stream_state_ {};
   std::string_view buffer_view_ {};
   // Please add any additional state to the ByteStream here, and not to the Writer and Reader interfaces.
-
-public:
-  explicit ByteStream( uint64_t capacity );
-
-  // Helper functions (provided) to access the ByteStream's Reader and Writer interfaces
-  Reader& reader();
-  const Reader& reader() const;
-  Writer& writer();
-  const Writer& writer() const;
 };
 
 class Writer : public ByteStream
