@@ -50,7 +50,9 @@ void Reassembler::insert( uint64_t first_index, string data, bool is_last_substr
 // 需要对数据的头尾进行判断，并在list中找出能插入的位置。
 void Reassembler::push_data_to_store(uint64_t first_index, uint64_t last_index, std::string data)
 {
-
+    first_index = last_index;
+    last_index = first_index;
+    data = "";
 }
 
 void Reassembler::push_data_to_byte_stream(std::string data, Writer& output)

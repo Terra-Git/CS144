@@ -35,7 +35,7 @@ public:
   uint64_t bytes_pending() const noexcept;
 
 protected:
-  using Node = tuple<uint64_t,uint64_t,std::string>;
+  using Node = std::tuple<uint64_t,uint64_t,std::string>;
   bool                store_finish_{};               // 是否已经缓存完成
   std::list<Node>     store_data_{};                 // 已经缓存的数据
   uint64_t            next_byte_index_{};            // 下一个要写入流的标号
