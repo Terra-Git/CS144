@@ -17,7 +17,7 @@ void Reassembler::insert( uint64_t first_index, string data, bool is_last_substr
   // 允许写入的最高数据尾号
   uint64_t available_end_index = get_next_byte_index() + output.available_capacity();
   // 已经被写入的数据 或者 无容量写入新数据的情况
-  if( data_last_index < get_next_byte_index() ||  available_end_index < first_index ){
+  if( data_last_index < get_next_byte_index() ||  available_end_index <= first_index ){
     return ;
   }
   if( data_last_index > available_end_index ){
