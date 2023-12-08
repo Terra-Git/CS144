@@ -1,5 +1,8 @@
 #include "reassembler.hh"
 
+#include <ranges>
+#include <algorithm>
+
 using namespace std;
 
 void Reassembler::insert( uint64_t first_index, string data, bool is_last_substring, Writer& output )
@@ -50,9 +53,21 @@ void Reassembler::insert( uint64_t first_index, string data, bool is_last_substr
 // 需要对数据的头尾进行判断，并在list中找出能插入的位置。
 void Reassembler::push_data_to_store(uint64_t first_index, uint64_t last_index, std::string data)
 {
-    first_index = last_index;
-    last_index = first_index;
-    data = "";
+  auto begin = store_data_.begin(),end = store_data_.end();
+  auto left = first_index,right =last_index;
+  auto max_left = lower_bound(begin, end, left, [](auto& node,auto& index){ return get<1>(node) < index; } );
+  auto min_righlt = upper_bound(max_left, end, right, [](auto& index, auto& node){ return get<0>(node) > index; } );
+  if( max_left != end ) {
+    left = min(static_cast<uint64_t>(1), get<0>(*max_left));
+  }
+  // 这个max操作，获取了右端点，后续可以整节点copy，不用在做 string 的截取
+  // 这里考虑到，data 里面，是可能包含部分其它节点的，一段段截取很复杂，取整之后，整段 copy 更好
+  if( min_righlt != end ){
+    right = max( static_cast<uint64_t>(right), get<1>( *prev(min_righlt)));
+  }
+  
+
+
 }
 
 void Reassembler::push_data_to_byte_stream(std::string data, Writer& output)

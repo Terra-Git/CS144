@@ -19,7 +19,7 @@ public:
   Writer& writer();
   const Writer& writer() const;
   
-protected:
+private:
   enum StreamState
   {
     CLOSE,
