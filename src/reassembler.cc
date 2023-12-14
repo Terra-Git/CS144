@@ -28,15 +28,15 @@ void Reassembler::insert( uint64_t first_index, string data, bool is_last_substr
     return;
   }
 
-  if( data_left < next_stream_index_){
-    data = data.substr(next_stream_index_ - first_index );
-    data_left = next_stream_index_;
-  }
   // 尾巴超过可用容量
   if ( enable_end_index < data_right ) {
     data_right = enable_end_index;
     data.resize( enable_end_index - data_left );
     is_last_substring = false;
+  }
+  if( data_left < next_stream_index_){
+    data = data.substr(next_stream_index_ - first_index );
+    data_left = next_stream_index_;
   }
 
   // 判断数据是否可以直接写入 stream
@@ -50,8 +50,6 @@ void Reassembler::insert( uint64_t first_index, string data, bool is_last_substr
     store_data( std::move( data ), data_left, data_right - 1 );
   }
   had_last_ |= is_last_substring;
-  if( !store_buffer_.empty()){
-  }
   push_store_data_to_stream( output );
   return;
 }
@@ -70,12 +68,8 @@ void Reassembler::store_data( std::string data, uint64_t begin, uint64_t end ) n
   auto store_left = store_buffer_.begin(), store_right = store_buffer_.end();
   auto left = std::lower_bound( store_left, store_right, data_left, []( auto& node, auto& left_index ) {return get<1>( node ) < left_index;} );
   auto right = std::upper_bound( left, store_right, data_right, []( auto& right_index, auto& node ) { return get<0>( node ) > right_index; } );
-  if ( left != store_right )  {
-    data_left = min( data_left, get<0>( *left ) );
-  }
-  if ( right != left ) {
-    data_right = max( data_right, get<1>( *prev(right) ) );
-  }
+  if ( left != store_right )  {data_left = min( data_left, get<0>( *left ) );}
+  if ( right != left ) {data_right = max( data_right, get<1>( *prev(right) ) );}
 
   store_data_size_ += data_right - data_left + 1;
   if ( data.size() == data_right - data_left + 1 && left == right ) {
@@ -97,7 +91,6 @@ void Reassembler::store_data( std::string data, uint64_t begin, uint64_t end ) n
 void Reassembler::push_store_data_to_stream( Writer& output ) noexcept
 {
   while ( !store_buffer_.empty() && get<0>( store_buffer_.front() ) == next_stream_index_ ) {
-    
     store_data_size_ -= get<2>( store_buffer_.front() ).size();
     push_data_to_stream( std::move( get<2>( store_buffer_.front() ) ), output );
     store_buffer_.pop_front();
