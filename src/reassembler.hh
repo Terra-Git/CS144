@@ -33,4 +33,18 @@ public:
 
   // How many bytes are stored in the Reassembler itself?
   uint64_t bytes_pending() const noexcept;
+
+private:
+  // 将数据推入字节流
+  void push_data_to_stream( std::string data, Writer& output ) noexcept;
+  // 暂存数据
+  void store_data( std::string data, uint64_t begin, uint64_t end ) noexcept;
+  // 将暂存的数据推入字节流
+  void push_store_data_to_stream( Writer& output ) noexcept;
+
+  uint64_t store_data_size_ {};   // 暂存的数据大小
+  uint64_t next_stream_index_ {}; // 下一个需要的字节下标
+  using DataNode = std::tuple<uint64_t, uint64_t, std::string>;
+  std::list<DataNode> store_buffer_ {};
+  bool had_last_ {};
 };
