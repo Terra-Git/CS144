@@ -18,7 +18,7 @@ public:
   const Reader& reader() const;
   Writer& writer();
   const Writer& writer() const;
-  
+
 protected:
   enum StreamState
   {
