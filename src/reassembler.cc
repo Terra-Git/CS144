@@ -23,17 +23,19 @@ void Reassembler::insert( uint64_t first_index, string data, bool is_last_substr
   }
   auto data_left = first_index, data_right = first_index + data.size();     // [left,right)
   auto enable_end_index = next_stream_index_ + output.available_capacity(); // [left,right)
-  // 没有可用容量, 这里保证了暂存区所有的数据都可以立即推入stream中
+  // 没有可用容量
   if ( data_right < next_stream_index_ || enable_end_index <= first_index ) {
     return;
   }
 
+  // 下面两个判断保证了，暂存的数据不会超过 stream 的可用容量，如果 store 中的数据满足条件，可以立即推入 stream 中
   // 尾巴超过可用容量
   if ( enable_end_index < data_right ) {
     data_right = enable_end_index;
     data.resize( enable_end_index - data_left );
     is_last_substring = false;
   }
+  // 头有重复
   if( data_left < next_stream_index_){
     data = data.substr(next_stream_index_ - first_index );
     data_left = next_stream_index_;
