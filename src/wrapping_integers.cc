@@ -13,10 +13,9 @@ Wrap32 Wrap32::wrap( uint64_t n, Wrap32 zero_point ) noexcept
 
 /**
  * 先计算 check_point 相对 zero_point 的位置(这里没有用类型，减少构造过程)
- * left：raw + 多少可以到 check，此时假定 raw 在 check 左边。
- * right：check + 多少可以到 raw，此时假定 raw 在 check 右边。
- * 比较左右距离，小的那个是最近距离
- * 同时需要保证 check_point 比 left 大的情况，raw 才能在 check_point 的左边
+ * left：raw + 多少可以到 check，此时假定 raw 在 check 左边。（raw = check - left）
+ * right：check + 多少可以到 raw，此时假定 raw 在 check 右边。 (raw = check + right)
+ * 同时需要保证 check_point 比 left 大的情况，raw 才能在 check_point 的左边。
 */
 uint64_t Wrap32::unwrap( Wrap32 zero_point, uint64_t checkpoint ) const noexcept
 {
