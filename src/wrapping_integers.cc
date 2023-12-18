@@ -13,6 +13,7 @@ Wrap32 Wrap32::wrap( uint64_t n, Wrap32 zero_point ) noexcept
 
 /**
  * 先计算 check_point 相对 zero_point 的位置(这里没有用类型，减少构造过程)
+ * 计算可以套圈情况下，B领先，A->B的距离，L 为一圈的长度，dis =（B + L - A）% L
  * left：raw + 多少可以到 check，此时假定 raw 在 check 左边。（raw = check - left）
  * right：check + 多少可以到 raw，此时假定 raw 在 check 右边。 (raw = check + right)
  * 同时需要保证 check_point 比 left 大的情况，raw 才能在 check_point 的左边。
