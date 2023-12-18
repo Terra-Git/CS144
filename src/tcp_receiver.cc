@@ -13,12 +13,12 @@ void TCPReceiver::receive( TCPSenderMessage message, Reassembler& reassembler, W
 {
   if(message.SYN){SYN = true; ISN = message.seqno;}
   if(!SYN) {return ;}
-  reassembler.insert((message.seqno).unwrap(ISN, reassembler.bytes_pending()) + message.SYN - 1 , message.payload,message.FIN,inbound_stream);
+  reassembler.insert((message.seqno).unwrap(ISN, reassembler.bytes_pending()) + message.SYN - 1, message.payload,message.FIN, inbound_stream);
 }
 
 TCPReceiverMessage TCPReceiver::send( const Writer& inbound_stream ) const
 {
   std::optional<Wrap32> ackno {};
-  if(SYN){ ackno = (ISN + SYN + inbound_stream.is_closed() + inbound_stream.bytes_pushed() % ( 1UL << 32)); }
-  return {ackno, (uint16_t)std::min(inbound_stream.available_capacity(), (uint64_t)UINT16_MAX)};
+  if(SYN){ ackno = Wrap32::wrap(SYN + inbound_stream.is_closed() + inbound_stream.bytes_pushed(), ISN); }
+  return { ackno, (uint16_t)std::min(inbound_stream.available_capacity(), (uint64_t)UINT16_MAX) };
 }
