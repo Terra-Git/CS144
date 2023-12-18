@@ -46,13 +46,28 @@ ttest(recv_reorder_more)
 ttest(recv_close)
 ttest(recv_special)
 
-add_custom_target (check0 COMMAND ${CMAKE_CTEST_COMMAND} --output-on-failure --stop-on-failure --timeout 20 -R 'webget|^byte_stream_')
+ttest(send_connect)
+ttest(send_transmit)
+ttest(send_retx)
+ttest(send_window)
+ttest(send_ack)
+ttest(send_close)
+ttest(send_extra)
+
+ttest(net_interface)
+
+add_custom_target (check0 COMMAND ${CMAKE_CTEST_COMMAND} --output-on-failure --stop-on-failure --timeout 12 -R 'webget|^byte_stream_')
+
 
 add_custom_target (check_webget COMMAND ${CMAKE_CTEST_COMMAND} --output-on-failure --timeout 20 -R 'webget')
 
 add_custom_target (check1 COMMAND ${CMAKE_CTEST_COMMAND} --output-on-failure --stop-on-failure --timeout 20 -R '^byte_stream_|^reassembler_')
 
 add_custom_target (check2 COMMAND ${CMAKE_CTEST_COMMAND} --output-on-failure --stop-on-failure --timeout 20 -R '^byte_stream_|^reassembler_|^wrapping|^recv')
+
+add_custom_target (check3 COMMAND ${CMAKE_CTEST_COMMAND} --output-on-failure --stop-on-failure --timeout 12 -R '^byte_stream_|^reassembler_|^wrapping|^recv|^send')
+
+add_custom_target (check4 COMMAND ${CMAKE_CTEST_COMMAND} --output-on-failure --stop-on-failure --timeout 12 -R '^net_interface')
 
 ###
 
