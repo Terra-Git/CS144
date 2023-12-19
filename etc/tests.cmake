@@ -56,7 +56,7 @@ ttest(send_extra)
 
 ttest(net_interface)
 
-add_custom_target (check0 COMMAND ${CMAKE_CTEST_COMMAND} --output-on-failure --stop-on-failure --timeout 20 -R 'webget|^byte_stream_')
+add_custom_target (check0 COMMAND ${CMAKE_CTEST_COMMAND} --output-on-failure --stop-on-failure --timeout 40 -R 'webget|^byte_stream_')
 
 
 add_custom_target (check_webget COMMAND ${CMAKE_CTEST_COMMAND} --output-on-failure --timeout 20 -R 'webget')

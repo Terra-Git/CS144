@@ -28,6 +28,7 @@ protected:
   std::queue<std::string> buffer_ {};
   uint64_t capacity_;
   uint64_t bytes_push_size_ {};
+  uint64_t bytes_buffed_size_ {};
   uint64_t bytes_pop_size_ {};
   unsigned char stream_state_ {};
   std::string_view buffer_view_ {};

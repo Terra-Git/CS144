@@ -1,4 +1,3 @@
-#include <iostream>
 #include <stdexcept>
 
 #include "byte_stream.hh"
@@ -10,14 +9,12 @@ ByteStream::ByteStream( uint64_t capacity ) : capacity_( capacity ) {}
 // 这里是值传递，data可以move操作
 void Writer::push( string data ) noexcept
 {
-  if ( is_closed() ) {
+  if ( 0 == available_capacity() || data.empty()) {
     return;
   }
   auto size = min( available_capacity(), data.size() );
 
-  if ( 0 == size ) {
-    return;
-  } else if ( size < data.size() ) {
+  if ( size < data.size() ) {
     data.resize( size );
   }
 
@@ -26,6 +23,8 @@ void Writer::push( string data ) noexcept
     buffer_view_ = buffer_.front();
   }
   bytes_push_size_ += size;
+  bytes_buffed_size_ += size;
+
   return;
 }
 
@@ -46,7 +45,7 @@ bool Writer::is_closed() const noexcept
 
 uint64_t Writer::available_capacity() const noexcept
 {
-  return ( capacity_ - reader().bytes_buffered() );
+  return ( capacity_ - bytes_buffed_size_ );
 }
 
 uint64_t Writer::bytes_pushed() const noexcept
@@ -71,10 +70,10 @@ bool Reader::has_error() const noexcept
 
 void Reader::pop( uint64_t len ) noexcept
 {
-  if ( len > bytes_buffered() ) {
+  if ( len > bytes_buffed_size_ ) {
     return;
   }
-
+  bytes_buffed_size_ -= len;
   bytes_pop_size_ += len;
 
   while ( 0 < len ) {
@@ -92,7 +91,7 @@ void Reader::pop( uint64_t len ) noexcept
 
 uint64_t Reader::bytes_buffered() const noexcept
 {
-  return writer().bytes_pushed() - bytes_popped();
+  return bytes_buffed_size_;
 }
 
 uint64_t Reader::bytes_popped() const noexcept
