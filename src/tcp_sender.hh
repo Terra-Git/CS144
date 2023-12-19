@@ -7,28 +7,26 @@
 #include <queue>
 #include <memory>
 
-enum class TimerStatus{ start, stop, error};
-
 class Timer
 {
 public:
-  Timer(uint64_t time):initial_RTO_ms_(time){}
+  Timer(uint64_t time):initial_rto_ms_(time){}
   void reset() noexcept {
-    RTO_ = initial_RTO_ms_;
-    is_start_ = true;
+    rto_ = initial_rto_ms_;
+    is_start_ = false;
   }
 
   bool     is_start()const noexcept { return is_start_;}
-  void     time_start() noexcept { is_start_ = true; }
-  void     time_stop() noexcept { is_start_ = false; }
-  bool     is_expire()const noexcept { return RTO_ <= 0; }
-  void     tick(uint64_t time) noexcept { RTO_ -= time; }
-  uint64_t get_RTO() const {return RTO_; }
-  void     double_RTO() noexcept { RTO_ *= 2; }
+  void     timer_start() noexcept { is_start_ = true; }
+  void     timer_stop() noexcept { is_start_ = false; }
+  bool     is_expire()const noexcept { return rto_ <= 0; }
+  void     tick(uint64_t time) noexcept { rto_ -= time; }
+  uint64_t get_RTO() const noexcept {return rto_; }
+  void     double_RTO() noexcept { rto_ *= 2; }
 
 private:
-  const uint64_t   initial_RTO_ms_;
-  uint64_t         RTO_{0};
+  const uint64_t   initial_rto_ms_;
+  uint64_t         rto_{0};
   bool             is_start_{false};
 };
 
@@ -36,7 +34,7 @@ class TCPSender
 {
 public:
   /* Construct TCP sender with given default Retransmission Timeout and possible ISN */
-  TCPSender( uint64_t initial_RTO_ms, std::optional<Wrap32> fixed_isn );
+  TCPSender( uint64_t initial_rto_ms, std::optional<Wrap32> fixed_isn );
 
   /* Push bytes from the outbound stream */
   void push( Reader& outbound_stream );
@@ -60,13 +58,14 @@ private:
   using MsgQueue =  std::queue<TCPSenderMessage>;
 
   Wrap32    isn_;
-  uint64_t  initial_RTO_ms_;
-  bool      SYN_{false};
-  bool      FIN_{false};
+  uint64_t  initial_rto_ms_;
+  Timer     timer_;
+  bool      syn_{false};
+  bool      fin_{false};
   uint64_t  receive_seqno_{};         // 已经确认的数据下标
   uint64_t  next_seqno_{};            // 下一个发送的数据下标
   uint64_t  retransmission_count{};  // 重传的message数量
-  uint16_t  windows_size_{};          // 窗口大小
+  uint16_t  windows_size_{1};          // 窗口大小
   MsgQueue  send_queue_{};            // 待发送队列
   MsgQueue  outstanding_queue_{};     // 已发送待确认的队列
 };
