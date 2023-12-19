@@ -30,22 +30,22 @@ void Writer::push( string data ) noexcept
 
 void Writer::close() noexcept
 {
-  stream_state_ |= ( 1 << StreamState::CLOSE );
+  is_closed_ = true;
 }
 
 void Writer::set_error() noexcept
 {
-  stream_state_ |= ( 1 << StreamState::ERROR );
+  has_error_ = true;
 }
 
 bool Writer::is_closed() const noexcept
 {
-  return stream_state_ & ( 1 << StreamState::CLOSE );
+  return is_closed_;
 }
 
 uint64_t Writer::available_capacity() const noexcept
 {
-  return ( capacity_ - bytes_buffed_size_ );
+  return capacity_ - bytes_buffed_size_;
 }
 
 uint64_t Writer::bytes_pushed() const noexcept
@@ -60,12 +60,12 @@ string_view Reader::peek() const noexcept
 
 bool Reader::is_finished() const noexcept
 {
-  return ( writer().is_closed() && 0 == bytes_buffered() );
+  return is_closed_ && bytes_buffed_size_ == 0;
 }
 
 bool Reader::has_error() const noexcept
 {
-  return stream_state_ & ( 1 << StreamState::ERROR );
+  return has_error_ ;
 }
 
 void Reader::pop( uint64_t len ) noexcept

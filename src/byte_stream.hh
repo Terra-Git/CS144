@@ -20,17 +20,13 @@ public:
   const Writer& writer() const;
 
 protected:
-  enum StreamState
-  {
-    CLOSE,
-    ERROR
-  };
   std::queue<std::string> buffer_ {};
   uint64_t capacity_;
   uint64_t bytes_push_size_ {};
   uint64_t bytes_buffed_size_ {};
   uint64_t bytes_pop_size_ {};
-  unsigned char stream_state_ {};
+  bool is_closed_ { false };
+  bool has_error_ { false };
   std::string_view buffer_view_ {};
   // Please add any additional state to the ByteStream here, and not to the Writer and Reader interfaces.
 };
