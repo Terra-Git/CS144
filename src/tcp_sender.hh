@@ -9,25 +9,37 @@
 
 class Timer
 {
+private:
+  uint64_t initial_RTO_ms_;
+  uint64_t curr_RTO_ms;
+  size_t time_ms_ { 0 };
+  bool running_ { false };
+
 public:
-  Timer(uint64_t time):initial_rto_ms_(time){}
-  void reset() noexcept {
-    rto_ = initial_rto_ms_;
-    is_start_ = false;
+  explicit Timer( uint64_t init_RTO ) : initial_RTO_ms_( init_RTO ), curr_RTO_ms( init_RTO ) {}
+
+  void start()
+  {
+    running_ = true;
+    time_ms_ = 0;
   }
 
-  bool     is_start()const noexcept { return is_start_;}
-  void     timer_start() noexcept { is_start_ = true; }
-  void     timer_stop() noexcept { is_start_ = false; }
-  bool     is_expire()const noexcept { return rto_ <= 0; }
-  void     tick(uint64_t time) noexcept { rto_ -= time; }
-  uint64_t get_RTO() const noexcept {return rto_; }
-  void     double_RTO() noexcept { rto_ *= 2; }
+  void stop() { running_ = false; }
 
-private:
-  const uint64_t   initial_rto_ms_;
-  uint64_t         rto_{0};
-  bool             is_start_{false};
+  bool is_running() const { return running_; }
+
+  bool is_expired() const { return running_ && ( time_ms_ >= curr_RTO_ms ); }
+
+  void tick( size_t const ms_since_last_tick )
+  {
+    if ( running_ ) {
+      time_ms_ += ms_since_last_tick;
+    }
+  }
+
+  void double_RTO() { curr_RTO_ms *= 2; }
+
+  void reset_RTO() { curr_RTO_ms = initial_RTO_ms_; }
 };
 
 class TCPSender
@@ -55,17 +67,20 @@ public:
   uint64_t sequence_numbers_in_flight() const;  // How many sequence numbers are outstanding?
   uint64_t consecutive_retransmissions() const; // How many consecutive *re*transmissions have happened?
 private:
-  using MsgQueue =  std::queue<TCPSenderMessage>;
+  Wrap32 isn_;
+  uint64_t initial_RTO_ms_;
 
-  Wrap32    isn_;
-  uint64_t  initial_rto_ms_;
-  Timer     timer_;
-  bool      syn_{false};
-  bool      fin_{false};
-  uint64_t  receive_seqno_{};         // 已经确认的数据下标
-  uint64_t  next_seqno_{};            // 下一个发送的数据下标
-  uint64_t  retransmission_count{};  // 重传的message数量
-  uint16_t  windows_size_{1};          // 窗口大小
-  MsgQueue  send_queue_{};            // 待发送队列
-  MsgQueue  outstanding_queue_{};     // 已发送待确认的队列
+  bool syn_ { false };
+  bool fin_ { false };
+  unsigned retransmit_cnt_ { 0 }; // consecutive re-transmit count
+
+  uint64_t acked_seqno_ { 0 };
+  uint64_t next_seqno_ { 0 };
+  uint16_t window_size_ { 1 };
+
+  uint64_t outstanding_cnt_ { 0 }; // sequence_numbers_in_flight
+  std::queue<TCPSenderMessage> outstanding_segments_ {};
+  std::queue<TCPSenderMessage> queued_segments_ {};
+
+  Timer timer_ { initial_RTO_ms_ };
 };
