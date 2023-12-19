@@ -23,7 +23,7 @@ uint64_t TCPSender::consecutive_retransmissions() const
 optional<TCPSenderMessage> TCPSender::maybe_send()
 {
   if( !syn_ ){
-    return ;
+    return {};
   }else if(!send_queue_.empty()){
     if( !timer_.is_start()){
       timer_.reset();
@@ -67,9 +67,10 @@ void TCPSender::push( Reader& outbound_stream )
 
 TCPSenderMessage TCPSender::send_empty_message() const
 {
-  return { Wrap32{next_seqno_} };
+  TCPSenderMessage messages;
+  messages.seqno = Wrap32::wrap(next_seqno_, isn_);
+  return messages ;
 }
-
 
 void TCPSender::receive( const TCPReceiverMessage& msg )
 {
@@ -111,7 +112,12 @@ void TCPSender::tick( const size_t ms_since_last_tick )
       }
       if( !outstanding_queue_.empty()){
         auto& re_message = outstanding_queue_.front();
-        
+        send_queue_.push(re_message);
+        retransmission_count++;
+        if( !receive_seqno_  and windows_size_ ){ timer_.double_RTO();}
+        else{ timer_.reset();timer_.timer_start();} 
+      }else{
+        timer_.timer_stop();
       }
     }
   }
